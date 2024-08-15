@@ -1,6 +1,10 @@
 package telegram
 
 import (
+	"fmt"
+	"os"
+	"os/signal"
+
 	"github.com/mymmrac/telego"
 )
 
@@ -13,7 +17,19 @@ func NewTgClient(token string) (*TgClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &TgClient{botApi: botClient}, nil
+	client := &TgClient{botApi: botClient}
+	defer client.setUpInterrupt()
+	return client, nil
+}
+
+func (tgClient *TgClient) setUpInterrupt() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for range c {
+			tgClient.StopUpdates()
+		}
+	}()
 }
 
 func (tgClient *TgClient) OpenUpdatesChannel() (<-chan telego.Update, error) {
@@ -30,6 +46,7 @@ func (tgClient *TgClient) OpenUpdatesChannel() (<-chan telego.Update, error) {
 }
 
 func (tgClient *TgClient) StopUpdates() {
+	fmt.Println("Stopping bot, bye-bye!")
 	tgClient.botApi.StopLongPolling()
 }
 

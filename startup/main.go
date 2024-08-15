@@ -16,7 +16,6 @@ func main() {
 
 	tgUpdates, err := botClient.OpenUpdatesChannel()
 	exitOnError(err)
-	defer botClient.StopUpdates()
 
 	for update := range tgUpdates {
 		if update.Message != nil {
