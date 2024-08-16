@@ -1,6 +1,6 @@
 package telegram
 
-const START_GREETING = `
+const _START_GREETING = `
 [WIP]🚧🚧🚧🚧🚧🚧🚧[WIP]
 Hello! 
 Welcome to Tele-go-chi bot!

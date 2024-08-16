@@ -18,7 +18,7 @@ func main() {
 	exitOnError(err)
 
 	for update := range tgUpdates {
-		err := botClient.ProcessMessage(update)
+		err := botClient.ProcessUpdate(update)
 		if err != nil {
 			fmt.Println(err)
 		}

@@ -40,7 +40,7 @@ func (tgClient *TgClient) StopUpdates() {
 	fmt.Println("\nStopping bot, bye-bye!")
 }
 
-func (tgClient *TgClient) ProcessMessage(update telego.Update) error {
+func (tgClient *TgClient) ProcessUpdate(update telego.Update) error {
 	if cannotProcessUpdate(update) {
 		return UnprocessableMessageError{}
 	}
@@ -64,7 +64,7 @@ func (tgClient *TgClient) processCommand(update telego.Update) error {
 
 	switch command {
 	case "start":
-		return tgClient.sendMessage(update.Message.Chat.ChatID(), START_GREETING)
+		return tgClient.sendMessage(update.Message.Chat.ChatID(), _START_GREETING)
 	default:
 		return MissingCommandError{Command: command}
 	}
