@@ -9,7 +9,7 @@ import (
 )
 
 type TgClient struct {
-	botApi *telego.Bot
+	botApi TelegoBotApi
 }
 
 func NewTgClient(token string) (*TgClient, error) {
@@ -72,14 +72,7 @@ func (tgClient *TgClient) processCommand(update telego.Update) error {
 
 func (tgClient *TgClient) echoMessage(message *telego.Message) error {
 	chatId := message.Chat.ChatID()
-
-	_, err := tgClient.botApi.CopyMessage(&telego.CopyMessageParams{
-		ChatID:     chatId,
-		FromChatID: chatId,
-		MessageID:  message.MessageID,
-	})
-
-	return err
+	return tgClient.sendMessage(chatId, message.Text)
 }
 
 func (tgClient *TgClient) sendMessage(chatId telego.ChatID, messageText string) error {

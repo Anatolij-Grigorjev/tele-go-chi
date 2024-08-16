@@ -2,7 +2,10 @@ module github.com/Anatolij-Grigorjev/tele-go-chi
 
 go 1.22.4
 
-require github.com/mymmrac/telego v0.31.1
+require (
+	github.com/mymmrac/telego v0.31.1
+	go.uber.org/mock v0.4.0
+)
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
