@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Anatolij-Grigorjev/tele-go-chi/utils"
 	"github.com/mymmrac/telego"
@@ -44,11 +45,29 @@ func (tgClient *TgClient) ProcessMessage(update telego.Update) error {
 		return UnprocessableMessageError{}
 	}
 
+	if messageIsCommand(update) {
+		return tgClient.processCommand(update)
+	}
 	return tgClient.echoMessage(update.Message)
 }
 
 func cannotProcessUpdate(update telego.Update) bool {
 	return update.Message == nil && update.CallbackQuery == nil
+}
+
+func messageIsCommand(update telego.Update) bool {
+	return update.Message != nil && strings.HasPrefix(update.Message.Text, "/")
+}
+
+func (tgClient *TgClient) processCommand(update telego.Update) error {
+	command, _ := strings.CutPrefix(update.Message.Text, "/")
+
+	switch command {
+	case "start":
+		return tgClient.sendMessage(update.Message.Chat.ChatID(), START_GREETING)
+	default:
+		return MissingCommandError{Command: command}
+	}
 }
 
 func (tgClient *TgClient) echoMessage(message *telego.Message) error {
@@ -58,6 +77,15 @@ func (tgClient *TgClient) echoMessage(message *telego.Message) error {
 		ChatID:     chatId,
 		FromChatID: chatId,
 		MessageID:  message.MessageID,
+	})
+
+	return err
+}
+
+func (tgClient *TgClient) sendMessage(chatId telego.ChatID, messageText string) error {
+	_, err := tgClient.botApi.SendMessage(&telego.SendMessageParams{
+		ChatID: chatId,
+		Text:   messageText,
 	})
 
 	return err
