@@ -18,13 +18,9 @@ func main() {
 	exitOnError(err)
 
 	for update := range tgUpdates {
-		if update.Message != nil {
-			err := botClient.EchoMessage(update.Message)
-			if err != nil {
-				fmt.Println(err)
-			}
-		} else {
-			fmt.Println("Update came with no message")
+		err := botClient.ProcessMessage(update)
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }

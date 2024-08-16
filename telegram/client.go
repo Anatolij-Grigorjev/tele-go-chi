@@ -46,11 +46,23 @@ func (tgClient *TgClient) OpenUpdatesChannel() (<-chan telego.Update, error) {
 }
 
 func (tgClient *TgClient) StopUpdates() {
-	fmt.Println("Stopping bot, bye-bye!")
+	fmt.Println("\nStopping bot, bye-bye!")
 	tgClient.botApi.StopLongPolling()
 }
 
-func (tgClient *TgClient) EchoMessage(message *telego.Message) error {
+func (tgClient *TgClient) ProcessMessage(update telego.Update) error {
+	if cannotProcessUpdate(update) {
+		return UnprocessableMessageError{}
+	}
+
+	return tgClient.echoMessage(update.Message)
+}
+
+func cannotProcessUpdate(update telego.Update) bool {
+	return update.Message == nil && update.CallbackQuery == nil
+}
+
+func (tgClient *TgClient) echoMessage(message *telego.Message) error {
 	chatId := message.Chat.ChatID()
 
 	_, err := tgClient.botApi.CopyMessage(&telego.CopyMessageParams{
