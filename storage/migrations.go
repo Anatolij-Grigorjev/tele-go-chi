@@ -9,7 +9,7 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-const _MIGRATIONS_FOLDER_PATH = "db_migrations/"
+const _MIGRATIONS_FOLDER_PATH = "storage/db_migrations/"
 
 func RunMigrations(dbCredentials Credentials) error {
 	session, err := openSession(dbCredentials)
