@@ -3,6 +3,7 @@ module github.com/Anatolij-Grigorjev/tele-go-chi
 go 1.22.4
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/mymmrac/telego v0.31.1
 	github.com/pressly/goose/v3 v3.21.1
 	github.com/upper/db/v4 v4.8.0
