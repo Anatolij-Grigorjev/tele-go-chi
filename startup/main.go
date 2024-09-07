@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Anatolij-Grigorjev/tele-go-chi/interactions"
 	"github.com/Anatolij-Grigorjev/tele-go-chi/storage"
 	"github.com/Anatolij-Grigorjev/tele-go-chi/telegram"
+	"github.com/mymmrac/telego"
 )
 
 func main() {
@@ -36,7 +38,7 @@ func prepareDataStore() {
 func processTelegramUpdates() {
 	tgBotToken := os.Getenv("BOT_TOKEN")
 
-	botClient, err := telegram.NewTgClient(tgBotToken)
+	botClient, err := telegram.NewTgClient(tgBotToken, buildTgHandlers())
 	exitOnError(err)
 
 	tgUpdates, err := botClient.OpenUpdatesChannel()
@@ -47,5 +49,13 @@ func processTelegramUpdates() {
 		if err != nil {
 			fmt.Println(err)
 		}
+	}
+}
+
+func buildTgHandlers() map[string]telegram.TgUpdateHandler {
+	return map[string]telegram.TgUpdateHandler{
+		"start": func(tgUpdate telego.Update) (string, error) {
+			return interactions.START_GREETING, nil
+		},
 	}
 }

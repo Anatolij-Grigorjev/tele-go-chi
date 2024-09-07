@@ -11,14 +11,14 @@ func conditionSendParamsHaveText(text string) gomock.Matcher {
 	return gomock.Cond(func(x any) bool { return x.(*telego.SendMessageParams).Text == text })
 }
 
-func NewTgClientWithMockApi(t *testing.T) (*TgClient, *MockTelegoBotApi) {
+func NewTgClientWithMockApi(t *testing.T, handlers map[string]TgUpdateHandler) (*TgClient, *MockTelegoBotApi) {
 	ctrl := gomock.NewController(t)
 	botApi := NewMockTelegoBotApi(ctrl)
-	return &TgClient{botApi: botApi}, botApi
+	return &TgClient{botApi: botApi, updateHandlers: handlers}, botApi
 }
 
 func TestTgClient_processUpdate_faultyUpdate(t *testing.T) {
-	tgClient, _ := NewTgClientWithMockApi(t)
+	tgClient, _ := NewTgClientWithMockApi(t, map[string]TgUpdateHandler{})
 
 	update1 := telego.Update{}
 	err := tgClient.ProcessUpdate(update1)
@@ -27,17 +27,21 @@ func TestTgClient_processUpdate_faultyUpdate(t *testing.T) {
 	}
 }
 
-func TestTgClient_processUpdate_startCommand(t *testing.T) {
-	tgClient, botApi := NewTgClientWithMockApi(t)
+func TestTgClient_processUpdate_commandReturnsFeedback(t *testing.T) {
+	commandName := "test"
+	feedbackText := "Hello this is feedback"
+	tgClient, botApi := NewTgClientWithMockApi(t, map[string]TgUpdateHandler{
+		commandName: func(tgUpdate telego.Update) (string, error) { return feedbackText, nil },
+	})
 
 	update := telego.Update{
 		Message: &telego.Message{
-			Text: "/start",
+			Text: "/" + commandName,
 			Chat: telego.Chat{},
 		},
 	}
 
-	botApi.EXPECT().SendMessage(conditionSendParamsHaveText(_START_GREETING)).Times(1)
+	botApi.EXPECT().SendMessage(conditionSendParamsHaveText(feedbackText)).Times(1)
 	err := tgClient.ProcessUpdate(update)
 	if err != nil {
 		t.Errorf("Expected no error, but got: %v", err)
@@ -45,7 +49,7 @@ func TestTgClient_processUpdate_startCommand(t *testing.T) {
 }
 
 func TestTgClient_processUpdate_missingCommand(t *testing.T) {
-	tgClient, _ := NewTgClientWithMockApi(t)
+	tgClient, _ := NewTgClientWithMockApi(t, map[string]TgUpdateHandler{})
 
 	cmdWord := "potato"
 	update := telego.Update{
@@ -65,7 +69,7 @@ func TestTgClient_processUpdate_missingCommand(t *testing.T) {
 }
 
 func TestTgClient_processUpdate_echoMessage(t *testing.T) {
-	tgClient, botApi := NewTgClientWithMockApi(t)
+	tgClient, botApi := NewTgClientWithMockApi(t, map[string]TgUpdateHandler{})
 
 	updateText := "Hello, world!"
 	update := telego.Update{

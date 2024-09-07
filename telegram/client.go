@@ -8,16 +8,19 @@ import (
 	"github.com/mymmrac/telego"
 )
 
+type TgUpdateHandler func(tgUpdate telego.Update) (string, error)
+
 type TgClient struct {
-	botApi TelegoBotApi
+	botApi         TelegoBotApi
+	updateHandlers map[string]TgUpdateHandler
 }
 
-func NewTgClient(token string) (*TgClient, error) {
+func NewTgClient(token string, cmdHandlers map[string]TgUpdateHandler) (*TgClient, error) {
 	botClient, err := telego.NewBot(token, telego.WithDefaultDebugLogger())
 	if err != nil {
 		return nil, err
 	}
-	client := &TgClient{botApi: botClient}
+	client := &TgClient{botApi: botClient, updateHandlers: cmdHandlers}
 	defer utils.SetUpProcessInterrupt(client.StopUpdates)
 	return client, nil
 }
@@ -62,12 +65,15 @@ func messageIsCommand(update telego.Update) bool {
 func (tgClient *TgClient) processCommand(update telego.Update) error {
 	command, _ := strings.CutPrefix(update.Message.Text, "/")
 
-	switch command {
-	case "start":
-		return tgClient.sendMessage(update.Message.Chat.ChatID(), _START_GREETING)
-	default:
+	handler, found := tgClient.updateHandlers[command]
+	if !found {
 		return MissingCommandError{Command: command}
 	}
+	feedback, err := handler(update)
+	if err != nil {
+		return err
+	}
+	return tgClient.sendMessage(update.Message.Chat.ChatID(), feedback)
 }
 
 func (tgClient *TgClient) echoMessage(message *telego.Message) error {
