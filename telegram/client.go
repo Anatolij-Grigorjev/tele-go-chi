@@ -64,8 +64,9 @@ func messageIsCommand(update telego.Update) bool {
 
 func (tgClient *TgClient) processCommand(update telego.Update) error {
 	command, _ := strings.CutPrefix(update.Message.Text, "/")
+	commandName := strings.SplitN(command, " ", 2)[0]
 
-	handler, found := tgClient.updateHandlers[command]
+	handler, found := tgClient.updateHandlers[commandName]
 	if !found {
 		return MissingCommandError{Command: command}
 	}

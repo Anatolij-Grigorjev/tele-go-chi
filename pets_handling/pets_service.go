@@ -12,6 +12,10 @@ type PetsService struct {
 	petsRepo storage.PetsRepository
 }
 
+func NewPetsService(petsRepo storage.PetsRepository) (*PetsService, error) {
+	return &PetsService{petsRepo: petsRepo}, nil
+}
+
 func (service *PetsService) StoreNewPlayerPet(playerId string, petEmoji string) (storage.PlayerPet, error) {
 	if strings.TrimSpace(playerId) == "" {
 		return storage.PlayerPet{}, errors.New("missing meaningful player ID")

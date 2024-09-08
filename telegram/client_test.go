@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mymmrac/telego"
@@ -37,6 +38,27 @@ func TestTgClient_processUpdate_commandReturnsFeedback(t *testing.T) {
 	update := telego.Update{
 		Message: &telego.Message{
 			Text: "/" + commandName,
+			Chat: telego.Chat{},
+		},
+	}
+
+	botApi.EXPECT().SendMessage(conditionSendParamsHaveText(feedbackText)).Times(1)
+	err := tgClient.ProcessUpdate(update)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+}
+
+func TestTgClient_processUpdate_commandHasArgs_lookupByName(t *testing.T) {
+	commandName := "test"
+	feedbackText := "Hello this is feedback"
+	tgClient, botApi := NewTgClientWithMockApi(t, map[string]TgUpdateHandler{
+		commandName: func(tgUpdate telego.Update) (string, error) { return feedbackText, nil },
+	})
+
+	update := telego.Update{
+		Message: &telego.Message{
+			Text: fmt.Sprintf("/%s %s %s", commandName, "arg1", "arg2"),
 			Chat: telego.Chat{},
 		},
 	}
