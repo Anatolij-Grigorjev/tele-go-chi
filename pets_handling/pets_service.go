@@ -3,6 +3,7 @@ package pets_handling
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/Anatolij-Grigorjev/tele-go-chi/storage"
 	"github.com/google/uuid"
@@ -39,8 +40,10 @@ func createPlayerPet(playerId string, emoji string) (storage.PlayerPet, error) {
 	}
 
 	return storage.PlayerPet{
-		PlayerID: playerId,
-		PetUUID:  petUUID.String(),
-		PetEmoji: emoji,
+		PlayerID:  playerId,
+		PetUUID:   petUUID.String(),
+		PetEmoji:  emoji,
+		Alive:     true,
+		CreatedAt: time.Now(),
 	}, nil
 }
