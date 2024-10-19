@@ -3,23 +3,20 @@ package storage
 import (
 	"database/sql"
 
-	"github.com/upper/db/v4"
-	"github.com/upper/db/v4/adapter/mysql"
-
 	"github.com/pressly/goose/v3"
+	"github.com/upper/db/v4"
 )
 
 const _MIGRATIONS_FOLDER_PATH = "storage/db_migrations/"
 
 func RunMigrations(dbCredentials Credentials) error {
-	session, err := openSession(dbCredentials)
-	if err != nil {
-		return err
-	}
-	defer session.Close()
+	return WithSession(dbCredentials, runGooseMigrations)
+}
+
+func runGooseMigrations(session db.Session) error {
 	sqlDB := session.Driver().(*sql.DB)
 
-	err = goose.SetDialect("mysql")
+	err := goose.SetDialect("mysql")
 	if err != nil {
 		return err
 	}
@@ -30,14 +27,4 @@ func RunMigrations(dbCredentials Credentials) error {
 	}
 
 	return nil
-}
-
-func openSession(credentials Credentials) (db.Session, error) {
-	settings := mysql.ConnectionURL{
-		Database: credentials.DBName,
-		Host:     credentials.Host,
-		User:     credentials.Username,
-		Password: credentials.Password,
-	}
-	return mysql.Open(settings)
 }

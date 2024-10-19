@@ -21,7 +21,7 @@ func NewTgClient(token string, cmdHandlers map[string]TgUpdateHandler) (*TgClien
 		return nil, err
 	}
 	client := &TgClient{botApi: botClient, updateHandlers: cmdHandlers}
-	defer utils.SetUpProcessInterrupt(client.StopUpdates)
+	utils.AddOnExitFunc(client.StopUpdates)
 	return client, nil
 }
 
@@ -40,7 +40,7 @@ func (tgClient *TgClient) OpenUpdatesChannel() (<-chan telego.Update, error) {
 
 func (tgClient *TgClient) StopUpdates() {
 	tgClient.botApi.StopLongPolling()
-	fmt.Println("\nStopping bot, bye-bye!")
+	fmt.Println("\nStopping TG bot...")
 }
 
 func (tgClient *TgClient) ProcessUpdate(update telego.Update) error {

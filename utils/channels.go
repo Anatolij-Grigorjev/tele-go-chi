@@ -21,13 +21,24 @@ func WrapChannel[T any, U any](input <-chan T, mapper MapperFunc[T, U]) <-chan U
 	return output
 }
 
-func SetUpProcessInterrupt(onExitFunc func()) {
+type ExitFunc func()
+
+var exitFuncs []ExitFunc = make([]ExitFunc, 0)
+
+func AddOnExitFunc(onExit ExitFunc) {
+	exitFuncs = append(exitFuncs, onExit)
+}
+
+// Sets up receiver for OS interrupt signal.
+//
+// To run code when that happens, add functions via the AddOnExitFunc(func()) process
+func SetUpProcessInterrupt() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
-		if onExitFunc != nil {
-			onExitFunc()
+		for _, actions := range exitFuncs {
+			actions()
 		}
 		os.Exit(1)
 	}()

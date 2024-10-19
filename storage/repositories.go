@@ -7,15 +7,16 @@ import (
 )
 
 type DBPetsRepository struct {
-	dbSession *db.Session
+	dbSession db.Session
 }
 
-func NewDBPetsRepository(dbSession *db.Session) (*DBPetsRepository, error) {
+func NewDBPetsRepository(dbSession db.Session) (*DBPetsRepository, error) {
 	return &DBPetsRepository{dbSession: dbSession}, nil
 }
 
 func (impl *DBPetsRepository) SavePet(pet PlayerPet) (PlayerPet, error) {
-	return pet, errors.New("TODO")
+	err := impl.dbSession.Save(&pet)
+	return pet, err
 }
 
 func (impl *DBPetsRepository) FindAllPlayerPets(PlayerID string) ([]PlayerPet, error) {

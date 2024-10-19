@@ -10,16 +10,20 @@ import (
 	"github.com/Anatolij-Grigorjev/tele-go-chi/pets_handling"
 	"github.com/Anatolij-Grigorjev/tele-go-chi/storage"
 	"github.com/Anatolij-Grigorjev/tele-go-chi/telegram"
+	"github.com/Anatolij-Grigorjev/tele-go-chi/utils"
 	"github.com/mymmrac/telego"
+	"github.com/upper/db/v4"
 )
 
 var petsRepository storage.PetsRepository
 var petsService *pets_handling.PetsService
 
 func main() {
+	// Run all exit functions when server quits
+	utils.SetUpProcessInterrupt()
 
-	prepareDataStore()
-	petsRepository, _ = storage.NewDBPetsRepository(nil)
+	botSession := prepareDataStore()
+	petsRepository, _ = storage.NewDBPetsRepository(botSession)
 	petsService, _ = pets_handling.NewPetsService(petsRepository)
 	processTelegramUpdates()
 }
@@ -31,7 +35,7 @@ func exitOnError(err error) {
 	}
 }
 
-func prepareDataStore() {
+func prepareDataStore() db.Session {
 	dbCredentials := storage.Credentials{
 		Host:     os.Getenv("DB_HOST"),
 		Username: os.Getenv("DB_USER"),
@@ -41,6 +45,15 @@ func prepareDataStore() {
 
 	err := storage.RunMigrations(dbCredentials)
 	exitOnError(err)
+
+	session, err := storage.OpenSession(dbCredentials)
+	exitOnError(err)
+	// close db session when server halts
+	utils.AddOnExitFunc(func() {
+		fmt.Println("\nClosing DB Session...")
+		session.Close()
+	})
+	return session
 }
 
 func processTelegramUpdates() {
