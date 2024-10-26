@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"fmt"
+
 	"github.com/upper/db/v4"
 	"github.com/upper/db/v4/adapter/mysql"
 )
@@ -8,7 +10,7 @@ import (
 // Open db session with provided credentials.
 //
 // Closing is responsibility of caller
-func OpenSession(credentials Credentials) (db.Session, error) {
+func OpenSession(credentials Credentials) (db.Session, func(), error) {
 	settings := mysql.ConnectionURL{
 		Database: credentials.DBName,
 		Host:     credentials.Host,
@@ -20,18 +22,20 @@ func OpenSession(credentials Credentials) (db.Session, error) {
 			"collation": "utf8mb4_unicode_ci",
 		},
 	}
-	return mysql.Open(settings)
+	session, err := mysql.Open(settings)
+	closerFunc := func() { fmt.Println("\nClosing DB Session..."); session.Close() }
+	return session, closerFunc, err
 }
 
 // Run actions within a db session.
 //
 // Opening and closing happens automatically around actions.
 func WithSession(credentials Credentials, actions func(session db.Session) error) error {
-	session, err := OpenSession(credentials)
+	session, closer, err := OpenSession(credentials)
 	if err != nil {
 		return err
 	}
-	defer session.Close()
+	defer closer()
 	err = actions(session)
 	return err
 }

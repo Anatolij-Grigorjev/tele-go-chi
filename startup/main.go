@@ -46,13 +46,10 @@ func prepareDataStore() db.Session {
 	err := storage.RunMigrations(dbCredentials)
 	exitOnError(err)
 
-	session, err := storage.OpenSession(dbCredentials)
+	session, closer, err := storage.OpenSession(dbCredentials)
 	exitOnError(err)
 	// close db session when server halts
-	utils.AddOnExitFunc(func() {
-		fmt.Println("\nClosing DB Session...")
-		session.Close()
-	})
+	utils.AddOnExitFunc(closer)
 	return session
 }
 
