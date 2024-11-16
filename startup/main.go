@@ -76,7 +76,7 @@ func buildTgHandlers() map[string]telegram.TgUpdateHandler {
 			return printBotGreeting()
 		},
 		"newpet": func(tgUpdate telego.Update) (string, error) {
-			return tryCreateNewPet(tgUpdate)
+			return createNewPet(tgUpdate)
 		},
 	}
 }
@@ -85,7 +85,7 @@ func printBotGreeting() (string, error) {
 	return interactions.START_GREETING, nil
 }
 
-func tryCreateNewPet(tgUpdate telego.Update) (string, error) {
+func createNewPet(tgUpdate telego.Update) (string, error) {
 	playerId := strconv.FormatInt(tgUpdate.Message.From.ID, 10)
 	cmdArgs := strings.Split(tgUpdate.Message.Text, " ")
 	var petEmoji string
@@ -96,7 +96,7 @@ func tryCreateNewPet(tgUpdate telego.Update) (string, error) {
 	}
 	newPet, err := petsService.StoreNewPlayerPet(playerId, petEmoji)
 	if err != nil {
-		return err.Error(), nil
+		return "", err
 	}
 	return interactions.NewPetMessage(newPet), nil
 }
